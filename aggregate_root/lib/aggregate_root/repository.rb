@@ -6,8 +6,10 @@ module AggregateRoot
       @event_store = event_store
     end
 
-    def load(aggregate, stream_name)
-      event_store.read.stream(stream_name).reduce { |_, ev| aggregate.apply(ev) }
+    def load(aggregate, stream_name, to = nil)
+      stream = event_store.read.stream(stream_name)
+      stream = stream.to(to) if to
+      stream.reduce { |_, ev| aggregate.apply(ev) }
       aggregate.version = aggregate.unpublished_events.count - 1
       aggregate
     end
